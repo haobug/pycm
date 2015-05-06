@@ -122,6 +122,8 @@ def query(request,category,value):
 def update(request):
     output=""
     for emp in Employee.objects.order_by('email'):
+        if not emp.team_id:
+            continue
         output += '' + str('<h1>%s</h1>' % emp.name)
         for comm in Community.objects.order_by('name'):
             if not comm.enabled :
