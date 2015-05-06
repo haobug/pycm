@@ -40,6 +40,7 @@ class Contribution(models.Model):
     employee_id = models.ForeignKey(Employee)
     review_id = models.IntegerField()
     community_id = models.ForeignKey(Community)
+    merge_date = models.DateTimeField(null=True)
 
 #class Question(models.Model):
 #    question_text = models.CharField(max_length=200)

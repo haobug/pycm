@@ -148,9 +148,11 @@ def update(request):
             for change in changes:
                 subject = str(change['subject'])
                 num =  str(change['_number'])
+                date =  str(change['updated'])
+
                 q = Contribution.objects.filter(employee_id=emp,review_id=num, community_id=comm)
                 if len(q) < 1:
-                    cont = Contribution(employee_id=emp,review_id=num, community_id=comm)
+                    cont = Contribution(employee_id=emp,review_id=num, community_id=comm, merge_date=date)
                     cont.save()
                 else:
                     continue
@@ -159,4 +161,5 @@ def update(request):
                 output += "<br/>\n" 
                 output += comm.review_base + num
                 output += "<br/>\n" 
+                time.sleep(1)
     return HttpResponse(output)
