@@ -16,6 +16,7 @@ admin.site.register(Team, TeamAdmin)
 class EmployeeAdmin(admin.ModelAdmin):
     fields = ['name', 'email', 'team_id']
     list_display = ('display', 'team_id')
+    search_fields = ['email', 'name']
     
 admin.site.register(Employee,EmployeeAdmin)
 
