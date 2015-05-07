@@ -27,7 +27,7 @@ class CommunityAdmin(admin.ModelAdmin):
 admin.site.register(Community, CommunityAdmin)
 
 class ContributionAdmin(admin.ModelAdmin):
-    fields = ['employee_id', 'review_id', 'community_id']
+    fields = ['employee_id', 'review_id', 'community_id', 'merge_date']
     list_display = fields
 
 admin.site.register(Contribution, ContributionAdmin)
