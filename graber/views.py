@@ -29,8 +29,8 @@ def average(value):
     if total == 0 or emp_count == 0:
         avg = 0
     else:
-        avg = total / emp_count
-    output += "<br/>\nAverage: %d" % (avg)
+        avg = float(float(total) / float(emp_count))
+    output += "<br/>\nAverage: %f" % (avg)
     return HttpResponse(output)
 
 def get_employee_count(value):
