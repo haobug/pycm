@@ -15,6 +15,9 @@ from urllib import urlencode
 import time
 from requests import HTTPError
 from django.db import connection
+import date_ut
+import logging
+logging.basicConfig(filename='pycm.log',level=logging.ERROR)
 
 # Create your views here.
 def index(request):
@@ -48,6 +51,11 @@ def get_employee_count(value):
 
 def get_contribution_total(value):
     cursor = connection.cursor()
+    date_range = None
+    if '_' in value:
+        date_range = value.split('_')[-1]
+        value = value.split('_')[0]
+    logging.error("=====>value:"+value)
     sql = """SELECT count(*) as count FROM graber_contribution
         WHERE employee_id_id in (SELECT id FROM graber_employee
             WHERE team_id_id in (
@@ -60,8 +68,13 @@ def get_contribution_total(value):
                     )
             )
         )"""
-    #output += sql
-    return int("%d" % cursor.execute(sql, [value, value]).fetchone())
+    params = [value, value]
+    if date_range:
+        sql += """ AND merge_date  > date(%s) AND merge_date < date(%s)"""
+        params.extend(date_ut.get_date_range(date_range))
+    logging.error(sql)
+    logging.error(params)
+    return int("%d" % cursor.execute(sql, [value, value, str(params[2]), str(params[3])]).fetchone())
 
 def summary(value):
     output = "Hello, summary: %s" % ( value)
