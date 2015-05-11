@@ -5,6 +5,7 @@ import ImageDraw
 import ImageFont
 import sys
 import os
+import os.path
 
 def getSize(txt, font):
     testImg = Image.new('RGB', (1, 1))
@@ -13,6 +14,8 @@ def getSize(txt, font):
 
 def get_pic(name, value):
     filename = "%s.png" % (name)
+    if os.path.exists(filename):
+        return filename
 #TODO:
 # 1. existance
 # 2. datestamp check
@@ -20,7 +23,7 @@ def get_pic(name, value):
     #fontname = "Arial.ttf"
     fontname = 'wqy-zenhei.ttc'
     fontsize = 14
-    text = ("%d" % value)
+    text = ("%.2f" % value)
 
     colorText = "#FEFEFE"
     colorOutline = "red"
