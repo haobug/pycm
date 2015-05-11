@@ -23,9 +23,9 @@ logging.basicConfig(filename='pycm.log',level=logging.ERROR)
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
 
-def average(value):
+def average(value,date_range):
     output = "Hello, average: %s" % ( value)
-    total = get_contribution_total(value)
+    total = get_contribution_total(value,date_range)
     emp_count = get_employee_count(value)
     output += "<br/>\nTotal: %d" % (total)
     output += "<br/>\nEmployees: %d" % (emp_count)
@@ -49,36 +49,20 @@ def get_employee_count(value):
             )"""
     return int("%d" % cursor.execute(sql, [value, value]).fetchone())
 
-def get_contribution_total(value):
+def get_contribution_total(value,date_range=None):
     cursor = connection.cursor()
-    date_range = None
-    if '_' in value:
-        date_range = value.split('_')[-1]
-        value = value.split('_')[0]
     logging.error("=====>value:"+value)
-    sql = """SELECT count(*) as count FROM graber_contribution
-        WHERE employee_id_id in (SELECT id FROM graber_employee
-            WHERE team_id_id in (
-                SELECT id FROM graber_team
-                    WHERE UPPER(name)=UPPER(%s)
-                union all
-                SELECT id FROM graber_team
-                    WHERE department_id_id==(SELECT id FROM graber_department
-                        WHERE UPPER(name)=UPPER(%s)
-                    )
-            )
-        )"""
-    params = [value, value]
-    if date_range:
-        sql += """ AND merge_date  > date(%s) AND merge_date < date(%s)"""
-        params.extend(date_ut.get_date_range(date_range))
+    sql = "SELECT count(*) as count FROM graber_contribution WHERE employee_id_id in (SELECT id FROM graber_employee WHERE team_id_id in ( SELECT id FROM graber_team WHERE UPPER(name)=UPPER('" + value + "') union all SELECT id FROM graber_team WHERE department_id_id==(SELECT id FROM graber_department WHERE UPPER(name)=UPPER('" + value + "'))))"
     logging.error(sql)
-    logging.error(params)
-    return int("%d" % cursor.execute(sql, [value, value, str(params[2]), str(params[3])]).fetchone())
+    if date_range:
+        [datestart,dateend] = date_ut.get_date_range(date_range)
+        sql += " AND date(merge_date)  > date('" + datestart + "') AND date(merge_date) < date('" + dateend +"')"
+    logging.error(sql)
+    return int("%d" % cursor.execute(sql).fetchone())
 
-def summary(value):
+def summary(value,date_range=None):
     output = "Hello, summary: %s" % ( value)
-    count = get_contribution_total(value)
+    count = get_contribution_total(value,date_range)
     output += "<br/>\nTotal: %d" % count
     return HttpResponse(output)
 
@@ -90,24 +74,28 @@ def respond_pic(name,value):
         image.save(response, "PNG")
     return response
 
-def summary_pic(value):
+def summary_pic(value,date_range=None):
     #output = "Hello, summary_pic: %s" % ( value)
-    count = get_contribution_total(value)
+    count = get_contribution_total(value,date_range)
     #output= """<img src="%s"/>""" % file
     #return HttpResponse(output)
-    return respond_pic(value, count)
+    filestem= "ALL_%s_%s" % (value, date_range)
+    logging.error(filestem)
+    return respond_pic(filestem, count)
 
-def average_pic(value):
+def average_pic(value,date_range=None):
     output = "Hello, average_pic: %s" % ( value)
-    total = get_contribution_total(value)
+    total = get_contribution_total(value,date_range)
     emp_count = get_employee_count(value)
     output += "<br/>\nTotal: %d" % (total)
     output += "<br/>\nEmployees: %d" % (emp_count)
     if total == 0 or emp_count == 0:
         avg = 0
     else:
-        avg = total / emp_count
-    return respond_pic(value, avg)
+        avg = float(float(total) / float(emp_count))
+    filestem= "AVG_%s_%s" % (value, date_range)
+    logging.error(filestem)
+    return respond_pic(filestem, avg)
 
 
 def query(request,category,value):
@@ -119,6 +107,10 @@ def query(request,category,value):
     if '.' in value_query:
         ext = value_query.split('.')[-1]
         value_query = value_query.split('.')[0]
+    date_range = None
+    if '_' in value:
+        date_range = value_query.split('_')[-1]
+        value_query = value_query.split('_')[0]
     if ext:
         switch = {
             'avg': average_pic,
@@ -129,7 +121,7 @@ def query(request,category,value):
             'avg': average,
             'sum': summary,
             'all': summary}
-    return switch[category](value_query)
+    return switch[category](value_query,date_range)
     #return HttpResponse("Hello, query: %s=%s" % (category, value))
 
 def update(request):
