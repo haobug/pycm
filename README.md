@@ -8,7 +8,7 @@ $ sudo pip install django
 $ sudo pip install pygerrit
 $ python manage.py migrate
 $ python manage.py createsuperuser
-$ python manage.py runserver 8090
+$ python manage.py runserver 0.0.0.0:8090
 ```
 
 to visit admin page in browser
